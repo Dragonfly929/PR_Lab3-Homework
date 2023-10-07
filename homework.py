@@ -85,6 +85,8 @@ print("Scraping completed and data saved to product_details.json")
 
 
 
+
+
 # using the json file that includes the urls
 #
 # with open("parsed_product_urls.json", 'r') as json_file:

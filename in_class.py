@@ -2,6 +2,7 @@ import requests
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin, urlparse
 import json
+import re
 
 
 def extract_product_type(start_url):
@@ -17,6 +18,15 @@ def extract_product_type(start_url):
 
 def is_booster(link):
     return 'booster' not in link.lower()
+
+
+def extract_next_page_url(soup):
+    next_page_link = soup.find('a', text=re.compile(r'(Next|Next Page|Next >)'))
+
+    if next_page_link:
+        return next_page_link['href']
+    else:
+        return None
 
 
 def crawl_product_urls(start_url, max_pages, parsed_product_urls=None):
@@ -49,7 +59,12 @@ def crawl_product_urls(start_url, max_pages, parsed_product_urls=None):
 
                 parsed_pages.add(current_url)
 
-                page_number += 1
+                next_page_url = extract_next_page_url(soup)
+                if next_page_url:
+                    current_url = urljoin(current_url, next_page_url)
+                    page_number += 1
+                else:
+                    break
 
             else:
                 print(f"Error while processing {current_url}: {response.status_code}")
@@ -73,7 +88,6 @@ max_pages = 1  # adjust the maximum number of pages to crawl as needed
 parsed_product_urls, parsed_pages = crawl_product_urls(start_url, max_pages)
 
 save_to_json(parsed_product_urls, "parsed_product_urls.json")
-
 
 print("Extracted Product URLs:")
 for url in parsed_product_urls:
